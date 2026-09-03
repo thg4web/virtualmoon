@@ -165,11 +165,25 @@ begin
   appdir := getcurrentdir;
   if not DirectoryExists(slash(appdir) + slash('Textures')) then
   begin
-    appdir := ExtractFilePath(ParamStr(0));
-    i      := pos('.app/', appdir);
-    if i > 0 then
+    // Inside a .app bundle the executable is at Contents/MacOS/datlun and the
+    // data set ships in Contents/Resources/.  Probe that location first, then
+    // fall back to the directory that contains the .app bundle.
+    // The probe sentinel is Database/ -- this program's own data directory --
+    // deliberately, even though the guard above tests Textures/: that outer
+    // test is upstream's and is left untouched, and Textures/ is part of the
+    // separately distributed high-resolution pack, so it is not a reliable
+    // marker of a populated Resources/ for the non-GLScene programs.
+    buf := ExpandFileName(slash(ExtractFilePath(ParamStr(0))) + '..' + PathDelim + 'Resources');
+    if DirectoryExists(slash(buf) + slash('Database')) then
+      appdir := buf
+    else
     begin
-      appdir := ExtractFilePath(copy(appdir, 1, i));
+      appdir := ExtractFilePath(ParamStr(0));
+      i      := pos('.app/', appdir);
+      if i > 0 then
+      begin
+        appdir := ExtractFilePath(copy(appdir, 1, i));
+      end;
     end;
   end;
 {$else}
