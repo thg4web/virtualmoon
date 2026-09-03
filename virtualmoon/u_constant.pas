@@ -205,7 +205,10 @@ const
       lib404   = 'libpasplan404.so.1';
 {$endif}
 {$ifdef darwin}
-      lib404   = 'libplan404.dylib';
+      // dlopen expands @executable_path -> the app bundle's MacOS dir, where
+      // libplan404.dylib ships alongside the binary. Avoids needing it on a
+      // system path or DYLD_LIBRARY_PATH.
+      lib404   = '@executable_path/libplan404.dylib';
 {$endif}
 {$ifdef mswindows}
       lib404 = 'libplan404.dll';
