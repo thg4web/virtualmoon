@@ -43,8 +43,19 @@ Homebrew's `fpc` / `lazarus` do not work on current macOS.
 > (3.2.4) / trunk and Lazarus trunk, rebuild, and drop `-k-ld_classic` from the
 > `.lpi` CustomOptions.
 
-For `calclun` / `weblun` runtime TLS: `brew install openssl@3` (the packaging
-script bundles it - step 4).
+### Homebrew packages
+
+These scripts assume **Homebrew** (<https://brew.sh>) is installed - it is on
+essentially every Mac dev machine.
+
+```
+brew install openssl@3      # REQUIRED - calclun/weblun bundle it for TLS (step 4)
+brew install wget           # optional  - only for the upstream data installer (step 3)
+```
+
+If `openssl@3` is genuinely unavailable, put a fixed `libssl.3.dylib` /
+`libcrypto.3.dylib` pair (see step 4) in `<workspace>/dist/libs/` by hand and
+`package-app.sh` will use those instead.
 
 ## 2. Build the suite
 
@@ -75,31 +86,41 @@ Plus `virtualmoon/library/plan404/libplan404.dylib` and
 
 ## 3. Base data
 
-The ~250 MB texture / database / kernel set is not in git. Fetch it once into
-`<workspace>/basedata` - then `package-app.sh` finds it with no extra config:
+The ~250 MB Moon texture / database / SPICE-kernel set is not in git. Fetch it
+once into `<workspace>/basedata/` - `package-app.sh` then finds it with no
+config (it looks for both `basedata/share/virtualmoon` and
+`basedata/usr/share/virtualmoon`).
 
-* **Upstream installer** (needs `wget`: `brew install wget`):
+Source: VMA's Linux **base data** package,
+<https://www.ap-i.net/avl/en/download> ->
 
-  ```
-  bash install_data.sh ~/vma-build/basedata
-  ```
+```
+https://sourceforge.net/projects/virtualmoon/files/1-%20virtualmoon/Version%209.0/virtualmoon-basedata_9.0_all.deb/download
+```
 
-  produces `~/vma-build/basedata/share/virtualmoon/...` - the default location
-  `package-app.sh` looks in.
+### Option A - the base-data package (one file, no wget)
 
-* **Debian base-data package** (`virtualmoon-basedata_9.0_all.deb` from the
-  SourceForge project files) - extracts to a slightly different path, so point
-  `VMA_BASEDATA` at it:
+```
+mkdir -p ~/vma-build/basedata && cd ~/vma-build/basedata
+curl -L -o basedata.deb "https://sourceforge.net/projects/virtualmoon/files/1-%20virtualmoon/Version%209.0/virtualmoon-basedata_9.0_all.deb/download"
+ar x basedata.deb
+tar xf data.tar.zst      # macOS 26 bsdtar reads .zst natively; older: brew install zstd
+rm basedata.deb control.tar.* debian-binary
+```
 
-  ```
-  mkdir -p ~/vma-build/basedata && cd ~/vma-build/basedata
-  ar x /path/to/virtualmoon-basedata_9.0_all.deb
-  tar xf data.tar.zst
-  export VMA_BASEDATA=~/vma-build/basedata/usr/share/virtualmoon
-  ```
+Leaves `~/vma-build/basedata/usr/share/virtualmoon/...`.
 
-`VMA_BASEDATA` (if you set it) must point at the directory that directly
-contains `Textures/`, `Database/`, `Encyclopedia/`, ...
+### Option B - the upstream installer (needs `wget`)
+
+```
+brew install wget
+bash install_data.sh ~/vma-build/basedata
+```
+
+Leaves `~/vma-build/basedata/share/virtualmoon/...`.
+
+Either way, `VMA_BASEDATA` can override the location - it must point at the dir
+that directly contains `Textures/`, `Database/`, `Encyclopedia/`, ...
 
 ## 4. Package
 

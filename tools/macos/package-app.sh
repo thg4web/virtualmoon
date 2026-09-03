@@ -80,7 +80,17 @@ LIBS="$DIST/libs"
 SSL="$LIBS/libssl.3.dylib"
 CRYPTO="$LIBS/libcrypto.3.dylib"
 
-DATA="${VMA_BASEDATA:-$WORKDIR/basedata/share/virtualmoon}"
+# base data: explicit override, else probe the two layouts fetched by step 3
+# (install_data.sh -> basedata/share/..., the .deb -> basedata/usr/share/...)
+if [ -n "${VMA_BASEDATA:-}" ]; then
+  DATA="$VMA_BASEDATA"
+elif [ -e "$WORKDIR/basedata/share/virtualmoon/Textures" ]; then
+  DATA="$WORKDIR/basedata/share/virtualmoon"
+elif [ -e "$WORKDIR/basedata/usr/share/virtualmoon/Textures" ]; then
+  DATA="$WORKDIR/basedata/usr/share/virtualmoon"
+else
+  DATA="$WORKDIR/basedata/share/virtualmoon"   # nonexistent - the check below reports it
+fi
 
 STAGE="$DIST/pkg-stage"
 APP="$STAGE/Virtual Moon Atlas.app"
@@ -100,13 +110,15 @@ done
 # --- base data present? -------------------------------------------------
 if [ ! -e "$DATA/Textures/WAC_LOWSUN/L1/0.jpg" ]; then
   cat >&2 <<EOF
-base data not found at:
-  $DATA
+base data not found under:
+  $WORKDIR/basedata   (checked share/virtualmoon and usr/share/virtualmoon)
 
-Get it once (needs wget: brew install wget):
-  bash "$REPO/install_data.sh" "$WORKDIR/basedata"
-or extract virtualmoon-basedata_9.0_all.deb and set VMA_BASEDATA to the dir
-that directly contains Textures/ Database/ Encyclopedia/ ...
+Get it once - either:
+  A) mkdir -p "$WORKDIR/basedata" && cd "$WORKDIR/basedata"
+     curl -L -o basedata.deb "https://sourceforge.net/projects/virtualmoon/files/1-%20virtualmoon/Version%209.0/virtualmoon-basedata_9.0_all.deb/download"
+     ar x basedata.deb && tar xf data.tar.zst
+  B) brew install wget && bash "$REPO/install_data.sh" "$WORKDIR/basedata"
+Or set VMA_BASEDATA to a dir that directly contains Textures/ Database/ ...
 See tools/macos/README.md step 3.
 EOF
   exit 1
