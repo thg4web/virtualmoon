@@ -674,11 +674,20 @@ begin
   appdir := getcurrentdir;
   if (not directoryexists(slash(appdir) + slash('Textures'))) then
   begin
-    appdir := ExtractFilePath(ParamStr(0));
-    i      := pos('.app/', appdir);
-    if i > 0 then
+    // Inside a .app bundle the executable is at Contents/MacOS/calclun and
+    // the data set ships in Contents/Resources/.  Probe that location first,
+    // then fall back to the directory that contains the .app bundle.
+    buf := ExpandFileName(slash(ExtractFilePath(ParamStr(0))) + '..' + PathDelim + 'Resources');
+    if directoryexists(slash(buf) + slash('Textures')) then
+      appdir := buf
+    else
     begin
-      appdir := ExtractFilePath(copy(appdir, 1, i));
+      appdir := ExtractFilePath(ParamStr(0));
+      i      := pos('.app/', appdir);
+      if i > 0 then
+      begin
+        appdir := ExtractFilePath(copy(appdir, 1, i));
+      end;
     end;
   end;
 {$else}
