@@ -64,40 +64,40 @@ echo "==> workspace $WORKDIR"
 # --- linker preflight ------------------------------------------------------
 # The .lpi files pass -k-ld_classic: FPC 3.2.2's prebuilt Obj-C method-list
 # layout trips the modern ld, and the classic linker (-ld_classic) is the
-# workaround. A stale Command Line Tools ld (pre-2023) does not know the flag
-# and fails every link with "library not found for -ld_classic". Probe once;
-# fall back to an Xcode.app toolchain that supports it.
-_ld_classic_ok() {  # $1: optional DEVELOPER_DIR to test with
+# workaround. Two ways it bites:
+#   * the active linker genuinely lacks -ld_classic (very new toolchain), or
+#   * fpcupdeluxe pinned -FD<Command Line Tools bin> in fpc.cfg and that ld is a
+#     pre-2023 relic that never had the flag (xcode-select won't move it).
+# Probe by linking a Pascal program the way lazbuild will; if -FD/usr/bin (the
+# xcode-select shim dir) fixes it, route FPC through a wrapper that adds it.
+_fpc_link_ok() {  # $1=compiler ; $2..=extra fpc args
+  local cc0="$1"; shift
   local t rc=0
   t="$(mktemp -d)" || return 2
-  printf 'int main(void){return 0;}\n' > "$t/t.c"
-  if [ -n "${1:-}" ]; then
-    DEVELOPER_DIR="$1" cc "$t/t.c" -o "$t/t" -Wl,-ld_classic >/dev/null 2>&1 || rc=1
-  else
-    cc "$t/t.c" -o "$t/t" -Wl,-ld_classic >/dev/null 2>&1 || rc=1
-  fi
+  printf 'begin end.\n' > "$t/p.pas"
+  ( cd "$t" && "$cc0" -Paarch64 -Tdarwin -k-ld_classic "$@" p.pas ) >/dev/null 2>&1 || rc=1
+  [ -x "$t/p" ] || rc=1
   rm -rf "$t"
   return $rc
 }
-if ! _ld_classic_ok ""; then
-  picked=""
-  for d in /Applications/Xcode.app/Contents/Developer \
-           /Applications/Xcode-*.app/Contents/Developer; do
-    [ -d "$d" ] && _ld_classic_ok "$d" && { picked="$d"; break; }
-  done
-  if [ -n "$picked" ]; then
-    export DEVELOPER_DIR="$picked"
-    echo "==> active linker rejects -ld_classic; using DEVELOPER_DIR=$picked"
+if ! _fpc_link_ok "$FPC"; then
+  if _fpc_link_ok "$FPC" -FD/usr/bin; then
+    printf '#!/bin/sh\nexec "%s" -FD/usr/bin "$@"\n' "$FPC" > "$WORKDIR/fpc-ldshim.sh"
+    chmod +x "$WORKDIR/fpc-ldshim.sh"
+    echo "==> fpc.cfg pins a stale linker dir; routing FPC through -FD/usr/bin"
+    echo "    ($WORKDIR/fpc-ldshim.sh)"
+    FPC="$WORKDIR/fpc-ldshim.sh"
   else
     cat >&2 <<EOF
 
-Your linker does not support -ld_classic, which this port needs (FPC 3.2.2 +
-a modern ld). Active dev dir: $(xcode-select -p 2>/dev/null). Fix one of:
-  * xcode-select --install               refresh stale Command Line Tools
-  * sudo xcodebuild -license accept       if Xcode.app is installed but unlicensed
-  * install / update Xcode.app            this script then auto-uses its toolchain
+Linking with -k-ld_classic fails, and -FD/usr/bin does not fix it - no linker
+on this machine supports -ld_classic. Fix one of:
+  * refresh Command Line Tools:  sudo xcode-select --install
+  * point xcode-select at a current Xcode.app:
+      sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
   * move fpcupdeluxe to FPC fixes (3.2.4) / trunk and delete every
     "-k-ld_classic" from the .lpi CustomOptions
+Active dev dir: $(xcode-select -p 2>/dev/null)
 EOF
     exit 1
   fi
