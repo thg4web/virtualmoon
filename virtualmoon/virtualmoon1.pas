@@ -2155,6 +2155,15 @@ testfile:=slash('Textures')+slash('WAC_LOWSUN')+slash('L1')+'0.jpg';
         end;
      end;
   end;
+  {$else}
+  // Combined bundle: the sibling binaries are bare-named in Contents/MacOS/,
+  // beside the one that was launched (appdir points at Contents/Resources/).
+  // Probe for photlun -- atlun cannot probe for itself -- rather than for our
+  // own name: bindir is the running exe's own directory, so probing for
+  // ourselves is always true and would make the fall-back unreachable.
+  bindir := slash(ExtractFilePath(ParamStr(0)));
+  if not FileExists(slash(bindir)+DefaultPhotlun) then
+     bindir := slash(appdir);
   {$endif}
   Maplun  := '"'+bindir + DefaultMaplun+'"';
   Photlun := '"'+bindir + DefaultPhotlun+'"';     // Photlun normally at same location as vma
