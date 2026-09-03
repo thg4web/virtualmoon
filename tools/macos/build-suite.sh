@@ -35,7 +35,16 @@ WORKDIR="${WORKDIR/#\~/$HOME}"
 mkdir -p "$WORKDIR"
 WORKDIR="$(cd "$WORKDIR" && pwd)"
 
-FPC="${FPC:-$WORKDIR/fpcupdeluxe/fpc/bin/aarch64-darwin/fpc}"
+# fpcupdeluxe wraps the compiler in fpc.sh ("fpc -n @<dir>/fpc.cfg $@") - it
+# forces the right config and ignores any system fpc.cfg. The bare `fpc` binary
+# needs a discoverable fpc.cfg and can't find fpcupdeluxe's on a clean machine
+# ("Can't find unit system"), so prefer fpc.sh - it's also what fpcupdeluxe
+# puts in the Lazarus config as CompilerFilename.
+_fpcdir="$WORKDIR/fpcupdeluxe/fpc/bin/aarch64-darwin"
+if   [ -n "${FPC:-}" ];            then :
+elif [ -x "$_fpcdir/fpc.sh" ];     then FPC="$_fpcdir/fpc.sh"
+else                                    FPC="$_fpcdir/fpc"
+fi
 LB="${LB:-$WORKDIR/fpcupdeluxe/lazarus/lazbuild}"
 PCP="${PCP:-$WORKDIR/fpcupdeluxe/config_lazarus}"
 
