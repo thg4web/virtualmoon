@@ -51,8 +51,8 @@ WORKDIR="${WORKDIR/#\~/$HOME}"
 mkdir -p "$WORKDIR"
 WORKDIR="$(cd "$WORKDIR" && pwd)"
 
-# source root: a bare clone keeps the programs at $REPO; the THG overlay repo
-# keeps them under upstream/
+# source root: a bare clone keeps the programs at $REPO; an overlay layout that
+# clones the VMA tree under upstream/ keeps them there
 if   [ -f "$REPO/virtualmoon/atlun.lpi" ];          then SRC="$REPO"
 elif [ -f "$REPO/upstream/virtualmoon/atlun.lpi" ]; then SRC="$REPO/upstream"
 else echo "cannot find the VMA source (no virtualmoon/atlun.lpi under $REPO)" >&2; exit 1

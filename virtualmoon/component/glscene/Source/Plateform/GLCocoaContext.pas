@@ -51,8 +51,8 @@
   main thread inside it.
 
   History :
-     2026-08-30 - THG / virtmoonatlas - Creation (native macOS port).
-                  See Project/docs/PORT_REPORT.md.
+     2026-08-30 - Creation. Native macOS (Cocoa) OpenGL context backend for
+                  the GLScene viewer, replacing the retired Carbon path.
   ============================================================================ }
 
 unit GLCocoaContext;
