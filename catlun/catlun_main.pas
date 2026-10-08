@@ -430,10 +430,10 @@ begin
 
  lockmeasure:=false;
  ComboBox1.Clear;
- for i:=0 to numtype do ComboBox1.Items.Add(formationtype[i,0]);
+ for i:=0 to numtype do ComboBox1.Items.Add(formationtype[i,1]);
  ComboBox1.ItemIndex:=2;
 
- u_translation.translate('fr','fr');
+ u_translation.translate('en','en');
 
   ldeg:='°';
   lmin:='''';
@@ -476,14 +476,14 @@ end else begin
    else if (curlon<0)and(curlon>-90) then quadrantnum:=3
    else quadrantnum:=4;
 end;
-edit8.Text:=quadrant[quadrantnum,0];
+edit8.Text:=quadrant[quadrantnum,1];
 // face
 if (curlon>=0)and(curlon<=80) then facenum:=0
 else if (curlon<0)and(curlon>=-80) then facenum:=0
 else if (curlon>80)and(curlon<=100) then facenum:=2
 else if (curlon<-80)and(curlon>=-100) then facenum:=2
 else facenum:=1;
-edit18.Text:=face[facenum,0];
+edit18.Text:=face[facenum,1];
 // lunaison
 case floor(curlon) of
  -90..-78 : lunation:=14;
@@ -503,8 +503,8 @@ case floor(curlon) of
   else lunation:=0;
 end;
 edit12.Text:=IntToStr(lunation);
-edit13.Text:=moondays[lunation,0];
-edit14.Text:=moondaym[lunation,0];
+edit13.Text:=moondays[lunation,1];
+edit14.Text:=moondaym[lunation,1];
 end;
 
 procedure Tf_catlun.Button6Click(Sender: TObject);
@@ -529,7 +529,7 @@ end
 else begin
   dbfr.Go(ipos);
   dben.Go(ipos);
-  ShowMessage('Pas trouvé!');
+  ShowMessage('Not found!');
 end;
 
 if trouve then begin
@@ -555,13 +555,13 @@ if trouve then begin
   edit8.Text:=buf;
   quadrantnum:=0;
   for i:=0 to 3 do
-    if quadrant[i,0]=buf then quadrantnum:=i;
+    if quadrant[i,1]=buf then quadrantnum:=i;
 
   buf:=dbfr.GetData('FACE');
   edit18.Text:=buf;
   facenum:=0;
   for i:=0 to 2 do
-    if face[i,0]=buf then facenum:=i;
+    if face[i,1]=buf then facenum:=i;
 
   moon1.CenterAt(deg2rad*curlon,deg2rad*curlat);
   moon1.SetMark(deg2rad*curlon,deg2rad*curlat,edit2.Text);
@@ -575,7 +575,7 @@ var latic,longic : string;
 begin
 // enregistrer
 if (trim(edit7.Text)='')or(trim(edit1.Text)='')or(trim(edit2.Text)='') then begin
-   ShowMessage('Champs manquant!');
+   ShowMessage('Missing field!');
    exit;
 end;
 if curlon>=0 then
@@ -681,8 +681,8 @@ dbfr.AddRow;
 dben.AddRow;
 
 moon1.SetMark(0,0,'');
-Button2.Caption:='Enregistrer';
-Button3.Caption:='Nouveau';
+Button2.Caption:='Save';
+Button3.Caption:='New';
 end;
 
 procedure Tf_catlun.Button4Click(Sender: TObject);
@@ -694,7 +694,7 @@ begin
   Button7.Caption := 'Width';
   moon1.MeasuringDistance := Button4.Down;
   if moon1.MeasuringDistance then begin
-    Button4.Caption := 'Fin mesure'
+    Button4.Caption := 'End measure'
   end else begin
     Button4.Caption := 'Length';
     moon1.SetMark(deg2rad*curlon,deg2rad*curlat,' ');
@@ -713,7 +713,7 @@ begin
   Button4.Caption := 'Length';
   moon1.MeasuringDistance := Button7.Down;
   if moon1.MeasuringDistance then begin
-    Button7.Caption := 'Fin mesure'
+    Button7.Caption := 'End measure'
   end else begin
     Button7.Caption := 'Width';
     moon1.SetMark(deg2rad*curlon,deg2rad*curlat,' ');
