@@ -5,7 +5,9 @@ eight-program VMA suite: `atlun`, `calclun`, `datlun`, `notelun`, `photlun`,
 `weblun`, `cclun`, `catlun`. Two scripts take a clean checkout to a
 distributable app.
 
-Verified with FPC 3.2.2 + Lazarus 3.6 on macOS 26 (M1 Pro).
+Verified with FPC 3.2.2 + Lazarus 3.6 on macOS 26 (M1 Pro). Also builds and
+runs clean with FPC 3.2.2 + Lazarus **4.8** on macOS 27 (M1) — fpcupdeluxe's
+`stable.gitlab` target as of 2026-10, no patch changes needed.
 
 ## 0. Build workspace
 
